@@ -1,5 +1,5 @@
 <?php
-namespace leoding86\Ucpass
+namespace leoding86\Ucpaas;
 
 /**
  * Created by PhpStorm.

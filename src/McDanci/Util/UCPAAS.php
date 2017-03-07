@@ -1,11 +1,11 @@
 <?php
-namespace McDanci\Util;
 /**
  * User: UCPAAS JackZhao
  * Date: 2014/10/22
  * Time: 12:04
  * Desc: UCPAAS PHP SDK
  */
+namespace McDanci\Util;
 
 class UCPAAS
 {

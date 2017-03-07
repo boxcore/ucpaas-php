@@ -1,13 +1,12 @@
 <?php
-namespace leoding86\Ucpaas;
-
+namespace McDanci\Util;
 /**
- * Created by PhpStorm.
  * User: UCPAAS JackZhao
  * Date: 2014/10/22
  * Time: 12:04
- * Dec : ucpass php sdk
+ * Desc: UCPAAS PHP SDK
  */
+
 class UCPAAS
 {
 

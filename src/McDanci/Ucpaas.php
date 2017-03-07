@@ -8,7 +8,7 @@ namespace leoding86\Ucpaas;
  * Time: 12:04
  * Dec : ucpass php sdk
  */
-class Ucpaas
+class UCPAAS
 {
 
     /**
@@ -478,4 +478,4 @@ class Ucpaas
         $data = $this->getResult($url, $body, $type,'post');
         return $data;
     }
-} 
+}

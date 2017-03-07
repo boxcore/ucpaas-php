@@ -1,2 +1,2 @@
-# ucpass
-云之讯SDK重打包
+# ucpaas
+雲之訊 PHP SDK

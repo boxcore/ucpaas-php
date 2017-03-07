@@ -9,34 +9,36 @@ namespace McDanci\Util;
 
 class UCPAAS
 {
-
     /**
      *  云之讯REST API版本号。当前版本号为：2014-06-30
      */
     const SoftVersion = "2014-06-30";
+
     /**
      * API请求地址
      */
     const BaseUrl = "https://api.ucpaas.com/";
+
     /**
      * @var string
      * 开发者账号ID。由32个英文字母和阿拉伯数字组成的开发者账号唯一标识符。
      */
     private $accountSid;
+
     /**
      * @var string
      * 开发者账号TOKEN
      */
     private $token;
+
     /**
      * @var string
      * 时间戳
      */
     private $timestamp;
 
-
     /**
-     * @param $options 数组参数必填
+     * @param array $options 数组参数必填
      * $options = array(
      *
      * )
@@ -169,7 +171,6 @@ class UCPAAS
         $data = $this->getResult($url,null,$type,'get');
         return $data;
     }
-
 
     /**
      * @param $appId 应用ID

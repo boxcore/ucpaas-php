@@ -5,9 +5,9 @@
  * Time: 12:04
  * Desc: UCPAAS SDK
  */
-namespace McDanci\Util;
+namespace McDanci\Util\UCPAAS;
 
-class ucpaasSMS
+class SMS
 {
     /**
      *  云之讯REST API版本号。当前版本号为：2014-06-30

@@ -16,9 +16,6 @@
       "name": "McDanci"
     }
   ],
-  "require": {
-    "php": "^5.3"
-  },
   "autoload": {
     "psr-4": {
       "McDanci\\Util\\": "src/"

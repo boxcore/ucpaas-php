@@ -1,13 +1,13 @@
 <?php
 /**
- * User: UCPAAS JackZhao
+ * User: JackZhao
  * Date: 2014/10/22
  * Time: 12:04
- * Desc: UCPAAS PHP SDK
+ * Desc: UCPAAS SDK
  */
 namespace McDanci\Util;
 
-class UCPAAS
+class ucpaasSMS
 {
     /**
      *  云之讯REST API版本号。当前版本号为：2014-06-30

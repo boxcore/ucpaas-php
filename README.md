@@ -1,2 +1,2 @@
-# ucpaas
-雲之訊 PHP SDK
+# ucpaasSMS
+雲之訊 SMS

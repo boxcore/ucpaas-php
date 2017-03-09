@@ -18,7 +18,7 @@
   ],
   "autoload": {
     "psr-4": {
-      "McDanci\\Util\\UCPaas\\": "src/"
+      "McDanci\\Util\\UCPaaS\\": "src/"
     }
   }
 }

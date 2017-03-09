@@ -3,88 +3,52 @@
  * User: JackZhao
  * Date: 2014/10/22
  * Time: 12:04
- * Desc: UCPaas
+ * Desc: UCPaaS
  */
-namespace McDanci\Util\UCPaas;
+namespace McDanci\Util\UCPaaS;
+
+use Exception;
 
 class VerificationCode
 {
-    /**
-     * 雲之訊 REST API 版本號。當前版本號爲：2014-06-30
-     */
+    //region Original
+
+    // 雲之訊 REST API 版本號。當前版本號爲：2014-06-30
     const SoftVersion = '2014-06-30';
 
-    /**
-     * API 請求位址
-     */
+    // API 請求位址
     const BaseUrl = 'https://api.ucpaas.com/';
 
-    //region TODO: Check
-
     /**
+     * 開發者賬號 ID
      * @var string
-     * 开发者账号ID。由32个英文字母和阿拉伯数字组成的开发者账号唯一标识符。
      */
     private $accountSid;
 
-    /**
-     * @var string
-     * 开发者账号TOKEN
-     */
-    private $token;
+    private
+        $token,
+        $timestamp;
 
     /**
-     * @var string
-     * 时间戳
-     */
-    private $timestamp;
-
-    /**
-     * @param array $options 数组参数必填
-     * $options = array(
-     *
-     * )
-     * @throws Exception
-     */
-    public function  __construct($options = array('accountsid' => null, 'token' => null))
-    {
-        if (is_array($options) && !empty($options)) {
-            $this->accountSid = isset($options['accountsid']) ? $options['accountsid'] : '';
-            $this->token = isset($options['token']) ? $options['token'] : '';
-            $this->timestamp = date("YmdHis") + 7200;
-        } else {
-            throw new Exception("非法参数");
-        }
-    }
-
-    public function setAccountSid($accountsid) {
-
-        $this->accountSid = $accountsid;
-    }
-
-    public function setToken($token) {
-        $this->token = $token;
-    }
-
-    /**
+     * 驗證 param
      * @return string
-     * 包头验证信息,使用Base64编码（账户Id:时间戳）
-     */
-    private function getAuthorization()
-    {
-        $data = $this->accountSid . ":" . $this->timestamp;
-        return trim(base64_encode($data));
-    }
-
-    /**
-     * @return string
-     * 验证参数,URL后必须带有sig参数，sig= MD5（账户Id + 账户授权令牌 + 时间戳，共32位）(注:转成大写)
      */
     private function getSigParameter()
     {
-        $sig = $this->accountSid . $this->token . $this->timestamp;
-        return strtoupper(md5($sig));
+        return strtoupper(md5($this->accountSid . $this->token . $this->timestamp));
     }
+
+    /**
+     * 封包 header 驗證資訊
+     * @return string
+     */
+    private function getAuthorization()
+    {
+        return base64_encode($this->accountSid . ':' . $this->timestamp);
+    }
+    //endregion
+
+    //region TODO: Check
 
     /**
      * @param $url
@@ -482,4 +446,43 @@ class VerificationCode
     }
 
     //endregion
+
+    //region 0.3.3
+
+    public static function getRestVer()
+    {
+        return self::SoftVersion;
+    }
+
+    //region 0.2.1
+
+    public function setAccountSid($accountSid)
+    {
+        $this->accountSid = $accountSid;
+    }
+
+    public function setToken($token)
+    {
+        $this->token = $token;
+    }
+
+    //endregion
+
+    //endregion
+
+    /**
+     * VerificationCode constructor.
+     * @param array $option
+     */
+    public function  __construct($option = ['accountsid' => null, 'token' => null])
+    {
+        if (is_array($option) && !empty($option)) {
+            $this->accountSid = isset($option['accountsid']) ? $option['accountsid'] : '';
+            $this->token = isset($option['token']) ? $option['token'] : '';
+
+            $this->timestamp = date('YmdHis') + 7200; // TODO: check
+        } else {
+            throw new Exception('illegal param');
+        }
+    }
 }

@@ -8,6 +8,7 @@
 namespace McDanci\Util\UCPaaS;
 
 use Exception;
+use RuntimeException;
 
 class VerificationCode
 {
@@ -46,78 +47,81 @@ class VerificationCode
     {
         return base64_encode($this->accountSid . ':' . $this->timestamp);
     }
-    //endregion
 
-    //region TODO: Check
+    /**
+     * @param $url
+     * @param $body POST 資料
+     * @param $type
+     * @param $method `POST | GET`
+     * @return mixed|string
+     */
+    private function connection($url, $body, $type, $method)
+    {
+        $mine = 'application/' . (($type == 'json') ?: 'xml');
+
+        if (function_exists('curl_init')) {
+            $header = [
+                'Accept:' . $mine,
+                'Content-Type:' . $mine . ';charset=utf-8',
+                'Authorization:' . $this->getAuthorization(),
+            ];
+
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
+            if ($method == 'post') {
+                curl_setopt($ch, CURLOPT_POST, 1);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+            }
+
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+            $result = curl_exec($ch);
+
+            curl_close($ch);
+        } else {
+            $opts = $opts['http'] = [];
+
+            $headers = ['method' => strtoupper($method)];
+
+            $headers[] = 'Accept:' . $mine;
+            $headers['header'] = [];
+            $headers['header'][] = 'Authorization:' . $this->getAuthorization();
+            $headers['header'][] = 'Content-Type:' . $mine . ';charset=utf-8';
+
+            if (!empty($body)) {
+                $headers['header'][] = 'Content-Length:' . strlen($body);
+                $headers['content'] = $body;
+            }
+
+            $opts['http'] = $headers;
+            $result = file_get_contents($url, false, stream_context_create($opts));
+        }
+
+        return $result;
+    }
 
     /**
      * @param $url
      * @param string $type
      * @return mixed|string
      */
-    private function getResult($url, $body = null, $type = 'json',$method)
+    private function getResult($url, $body = null, $type = 'json', $method)
     {
-        $data = $this->connection($url,$body,$type,$method);
+        $data = $this->connection($url, $body, $type, $method);
         if (isset($data) && !empty($data)) {
-            $result = $data;
+            return $data;
         } else {
-            $result = '没有返回数据';
+            return 'no data returned';
         }
-        return $result;
     }
 
-    /**
-     * @param $url
-     * @param $type
-     * @param $body  post数据
-     * @param $method post或get
-     * @return mixed|string
-     */
-    private function connection($url, $body, $type,$method)
-    {
-        if ($type == 'json') {
-            $mine = 'application/json';
-        } else {
-            $mine = 'application/xml';
-        }
-        if (function_exists("curl_init")) {
-            $header = array(
-                'Accept:' . $mine,
-                'Content-Type:' . $mine . ';charset=utf-8',
-                'Authorization:' . $this->getAuthorization(),
-            );
-            $ch = curl_init($url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-            if($method == 'post'){
-                curl_setopt($ch,CURLOPT_POST,1);
-                curl_setopt($ch,CURLOPT_POSTFIELDS,$body);
-            }
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            $result = curl_exec($ch);
-            curl_close($ch);
-        } else {
-            $opts = array();
-            $opts['http'] = array();
-            $headers = array(
-                "method" => strtoupper($method),
-            );
-            $headers[]= 'Accept:'.$mine;
-            $headers['header'] = array();
-            $headers['header'][] = "Authorization: ".$this->getAuthorization();
-            $headers['header'][]= 'Content-Type:'.$mine.';charset=utf-8';
+    //endregion
 
-            if(!empty($body)) {
-                $headers['header'][]= 'Content-Length:'.strlen($body);
-                $headers['content']= $body;
-            }
-
-            $opts['http'] = $headers;
-            $result = file_get_contents($url, false, stream_context_create($opts));
-        }
-        return $result;
-    }
+    //region TODO: Check
 
     /**
      * @param string $type 默认json,也可指定xml,否则抛出异常
@@ -477,8 +481,13 @@ class VerificationCode
     public function  __construct($option = ['accountsid' => null, 'token' => null])
     {
         if (is_array($option) && !empty($option)) {
-            $this->accountSid = isset($option['accountsid']) ? $option['accountsid'] : '';
-            $this->token = isset($option['token']) ? $option['token'] : '';
+            foreach (['accountSid' => $option['accountsid'], 'token' => $option['token']] as $key => &$value) {
+                if (isset($value)) {
+                    $this->$key = $value;
+                } else {
+                    throw new RuntimeException('param empty');
+                }
+            }
 
             $this->timestamp = date('YmdHis') + 7200; // TODO: check
         } else {

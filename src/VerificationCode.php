@@ -3,21 +3,23 @@
  * User: JackZhao
  * Date: 2014/10/22
  * Time: 12:04
- * Desc: UCPAAS SDK
+ * Desc: UCPAAS
  */
 namespace McDanci\Util\UCPAAS;
 
-class SMS
+class VerificationCode
 {
     /**
-     *  云之讯REST API版本号。当前版本号为：2014-06-30
+     * 雲之訊 REST API 版本號。當前版本號爲：2014-06-30
      */
     const SoftVersion = "2014-06-30";
 
     /**
-     * API请求地址
+     * API 請求位址
      */
     const BaseUrl = "https://api.ucpaas.com/";
+
+    //region TODO: Check
 
     /**
      * @var string
@@ -478,4 +480,6 @@ class SMS
         $data = $this->getResult($url, $body, $type,'post');
         return $data;
     }
+
+    //endregion
 }

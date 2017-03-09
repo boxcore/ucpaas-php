@@ -3,21 +3,21 @@
  * User: JackZhao
  * Date: 2014/10/22
  * Time: 12:04
- * Desc: UCPAAS
+ * Desc: UCPaas
  */
-namespace McDanci\Util\UCPAAS;
+namespace McDanci\Util\UCPaas;
 
 class VerificationCode
 {
     /**
      * 雲之訊 REST API 版本號。當前版本號爲：2014-06-30
      */
-    const SoftVersion = "2014-06-30";
+    const SoftVersion = '2014-06-30';
 
     /**
      * API 請求位址
      */
-    const BaseUrl = "https://api.ucpaas.com/";
+    const BaseUrl = 'https://api.ucpaas.com/';
 
     //region TODO: Check
 

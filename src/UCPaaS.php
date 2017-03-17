@@ -1,105 +1,78 @@
 <?php
 /**
- * @copyright since 17:13 17/3/2017
- * @author <outieyi@milianjie.com>
+ * User: JackZhao
+ * Date: 2014/10/22
+ * Time: 12:04
+ * Desc: UCPaaS
  */
 namespace McDanci\Util\UCPaaS;
 
-use Exception;
-use RuntimeException;
-
-class VerificationCode
+class UCPaaS
 {
-    //region Original
-
-    // 雲之訊 REST API 版本號。當前版本號爲：2014-06-30
-    const SoftVersion = '2014-06-30';
-
-    // API 請求位址
-    const BaseUrl = 'https://api.ucpaas.com/';
+    /**
+     *  云之讯REST API版本号。当前版本号为：2014-06-30
+     */
+    const SoftVersion = "2014-06-30";
 
     /**
-     * 開發者賬號 ID
+     * API请求地址
+     */
+    const BaseUrl = "https://api.ucpaas.com/";
+
+    /**
      * @var string
+     * 开发者账号ID。由32个英文字母和阿拉伯数字组成的开发者账号唯一标识符。
      */
     private $accountSid;
 
-    private
-        $token,
-        $timestamp;
+    /**
+     * @var string
+     * 开发者账号TOKEN
+     */
+    private $token;
 
     /**
-     * 驗證 param
-     * @return string
+     * @var string
+     * 时间戳
      */
-    private function getSigParameter()
+    private $timestamp;
+
+    /**
+     * @param array $options 数组参数必填
+     * $options = array(
+     *
+     * )
+     * @throws Exception
+     */
+    public function  __construct($options)
     {
-        return strtoupper(md5($this->accountSid . $this->token . $this->timestamp));
+        if (is_array($options) && !empty($options)) {
+            $this->accountSid = isset($options['accountsid']) ? $options['accountsid'] : '';
+            $this->token = isset($options['token']) ? $options['token'] : '';
+            $this->timestamp = date("YmdHis") + 7200;
+        } else {
+            throw new Exception("非法参数");
+        }
     }
 
     /**
-     * 封包 header 驗證資訊
      * @return string
+     * 包头验证信息,使用Base64编码（账户Id:时间戳）
      */
     private function getAuthorization()
     {
-        return base64_encode($this->accountSid . ':' . $this->timestamp);
+        $data = $this->accountSid . ":" . $this->timestamp;
+        return trim(base64_encode($data));
     }
 
     /**
-     * @param $url
-     * @param $body POST 資料
-     * @param $type
-     * @param $method `POST | GET`
-     * @return mixed|string
+     * @return string
+     * 验证参数,URL后必须带有sig参数，sig= MD5（账户Id + 账户授权令牌 + 时间戳，共32位）(注:转成大写)
      */
-    private function connection($url, $body, $type, $method)
+    private function getSigParameter()
     {
-        $mine = 'application/' . (($type == 'json') ?: 'xml');
-
-        if (function_exists('curl_init')) {
-            $header = [
-                'Accept:' . $mine,
-                'Content-Type:' . $mine . ';charset=utf-8',
-                'Authorization:' . $this->getAuthorization(),
-            ];
-
-            $ch = curl_init($url);
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-
-            if ($method == 'post') {
-                curl_setopt($ch, CURLOPT_POST, 1);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-            }
-
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-            $result = curl_exec($ch);
-
-            curl_close($ch);
-        } else {
-            $opts = $opts['http'] = [];
-
-            $headers = ['method' => strtoupper($method)];
-
-            $headers[] = 'Accept:' . $mine;
-            $headers['header'] = [];
-            $headers['header'][] = 'Authorization:' . $this->getAuthorization();
-            $headers['header'][] = 'Content-Type:' . $mine . ';charset=utf-8';
-
-            if (!empty($body)) {
-                $headers['header'][] = 'Content-Length:' . strlen($body);
-                $headers['content'] = $body;
-            }
-
-            $opts['http'] = $headers;
-            $result = file_get_contents($url, false, stream_context_create($opts));
-        }
-
-        return $result;
+        $sig = $this->accountSid . $this->token . $this->timestamp;
+        return strtoupper(md5($sig));
     }
 
     /**
@@ -107,19 +80,69 @@ class VerificationCode
      * @param string $type
      * @return mixed|string
      */
-    private function getResult($url, $body = null, $type = 'json', $method)
+    private function getResult($url, $body = null, $type = 'json',$method)
     {
-        $data = $this->connection($url, $body, $type, $method);
+        $data = $this->connection($url,$body,$type,$method);
         if (isset($data) && !empty($data)) {
-            return $data;
+            $result = $data;
         } else {
-            return 'no data returned';
+            $result = '没有返回数据';
         }
+        return $result;
     }
 
-    //endregion
+    /**
+     * @param $url
+     * @param $type
+     * @param $body  post数据
+     * @param $method post或get
+     * @return mixed|string
+     */
+    private function connection($url, $body, $type,$method)
+    {
+        if ($type == 'json') {
+            $mine = 'application/json';
+        } else {
+            $mine = 'application/xml';
+        }
+        if (function_exists("curl_init")) {
+            $header = array(
+                'Accept:' . $mine,
+                'Content-Type:' . $mine . ';charset=utf-8',
+                'Authorization:' . $this->getAuthorization(),
+            );
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+            if($method == 'post'){
+                curl_setopt($ch,CURLOPT_POST,1);
+                curl_setopt($ch,CURLOPT_POSTFIELDS,$body);
+            }
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+            $result = curl_exec($ch);
+            curl_close($ch);
+        } else {
+            $opts = array();
+            $opts['http'] = array();
+            $headers = array(
+                "method" => strtoupper($method),
+            );
+            $headers[]= 'Accept:'.$mine;
+            $headers['header'] = array();
+            $headers['header'][] = "Authorization: ".$this->getAuthorization();
+            $headers['header'][]= 'Content-Type:'.$mine.';charset=utf-8';
 
-    //region TODO: Check
+            if(!empty($body)) {
+                $headers['header'][]= 'Content-Length:'.strlen($body);
+                $headers['content']= $body;
+            }
+
+            $opts['http'] = $headers;
+            $result = file_get_contents($url, false, stream_context_create($opts));
+        }
+        return $result;
+    }
 
     /**
      * @param string $type 默认json,也可指定xml,否则抛出异常
@@ -445,51 +468,5 @@ class VerificationCode
         }
         $data = $this->getResult($url, $body, $type,'post');
         return $data;
-    }
-
-    //endregion
-
-    //region 0.3.3
-
-    public static function getRestVer()
-    {
-        return self::SoftVersion;
-    }
-
-    //region 0.2.1
-
-    public function setAccountSid($accountSid)
-    {
-        $this->accountSid = $accountSid;
-    }
-
-    public function setToken($token)
-    {
-        $this->token = $token;
-    }
-
-    //endregion
-
-    //endregion
-
-    /**
-     * VerificationCode constructor.
-     * @param array $option
-     */
-    public function  __construct($option = ['accountsid' => null, 'token' => null])
-    {
-        if (is_array($option) && !empty($option)) {
-            foreach (['accountSid' => $option['accountsid'], 'token' => $option['token']] as $key => &$value) {
-                if (isset($value)) {
-                    $this->$key = $value;
-                } else {
-                    throw new RuntimeException('param empty');
-                }
-            }
-
-            $this->timestamp = date('YmdHis') + 7200; // TODO: check
-        } else {
-            throw new Exception('illegal param');
-        }
     }
 }
